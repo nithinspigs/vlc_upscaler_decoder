@@ -2,7 +2,7 @@
 #include "opencv2/opencv.hpp"
 #include <iostream>
 
-void CvDecode::cvDecode(char *p_buffer, int i_buffer) {
+void CvDecode::cvDecode(unsigned char *p_buffer, int i_buffer) {
 
 	/* p_buffer contains the encoded image information that came from p_dec -> p_buffer
 	 * I need to see link on how to convert this into a cv::Mat without data copying

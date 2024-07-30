@@ -9,13 +9,16 @@
 // Items to include for OpenCV functionality
 // #include "./cvDecode/cvDecodeWrapper.h"
 
+static int Open(vlc_object_t *);
+static void Close(vlc_object_t *);
+
 #define MODULE_STRING "VLC Upscaler Decoder"
 
 vlc_module_begin()
-	set_shortname("VLC Upscaler Decoder");
-	set_description("VLC plugin that decodes video and upscales it in real time");
-	set_capability("decoder", 0);
-	set_callbacks(Open, Close);
+	set_shortname("VLC Upscaler Decoder")
+	set_description("VLC plugin that decodes video and upscales it in real time")
+	set_capability("decoder", 0)
+	set_callbacks(Open, Close)
 vlc_module_end()
 
 static int Open(vlc_object_t *p_this) {
@@ -41,13 +44,16 @@ static int Open(vlc_object_t *p_this) {
 
 static int Decode(decoder_t *p_dec, block_t *p_block) {
 
+	printf("%s", "Verify that decoder plugin is running");
+
 	// No data to decode
 	if(!p_block) {
 		return VLCDEC_SUCCESS;
 	}
 
 	// Just decode, no processing
-	picture_t p_pic;
+	// picture_t p_pic;
+	picture_t *p_pic; // = decoder_NewPicture(p_dec);
 	// Find a way to not pass VLC structs to opencv, cuz g++ cannot compile VLC header files properly
 	decoder_sys_t *p_sys = (decoder_sys_t *) p_dec -> p_sys;
 	CvDecode_decode(p_sys -> v, p_block -> p_buffer, p_block -> i_buffer);
@@ -78,7 +84,7 @@ static int Decode(decoder_t *p_dec, block_t *p_block) {
 
 	*/
 
-	decoder_QueueVideo(p_dec, &p_pic);
+	decoder_QueueVideo(p_dec, p_pic);
 	// block_Release can't be identified by linked idk why
 	// block_Release(p_block);
 
@@ -86,12 +92,11 @@ static int Decode(decoder_t *p_dec, block_t *p_block) {
 
 }
 
-static int Close(vlc_object_t *p_this) {
+static void Close(vlc_object_t *p_this) {
 
 	decoder_t *p_dec = (decoder_t *) p_this;
 	decoder_sys_t *p_sys = p_dec -> p_sys;
 	deleteCvDecode(p_sys -> v);
 	free(p_dec -> p_sys);
-	return VLC_SUCCESS;
 
 }

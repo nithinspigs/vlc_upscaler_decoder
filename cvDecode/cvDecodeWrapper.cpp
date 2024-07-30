@@ -7,7 +7,7 @@ extern "C" {
 		return new CvDecode();
 	}
 
-	void CvDecode_decode(CvDecode *v, char *p_buffer, int i_buffer) {
+	void CvDecode_decode(CvDecode *v, unsigned char *p_buffer, int i_buffer) {
 
 		v -> cvDecode(p_buffer, i_buffer);
 

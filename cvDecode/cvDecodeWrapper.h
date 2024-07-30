@@ -6,7 +6,7 @@ typedef struct CvDecode CvDecode;
 
 CvDecode *newCvDecode();
 
-void CvDecode_decode(CvDecode *v, char *p_buffer, int i_buffer);
+void CvDecode_decode(CvDecode *v, unsigned char *p_buffer, int i_buffer);
 
 void deleteCvDecode(CvDecode *v);
 
