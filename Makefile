@@ -2,36 +2,34 @@
 MAKE = make
 CC = gcc
 CXX = g++
-VLC_SRC_PATH = /Users/nithin/Personal/git-repos/vlc
-# VLC_LIBS_PATH = /Applications/VLC.app/Contents/MacOS/lib
-VLC_LIBS_PATH = ../vlc_libs/mac
+VLC_SRC_PATH = ./include/vlc/plugins/
+VLC_LIBS_PATH = /Applications/VLC.app/Contents/MacOS/lib
 CV_SRC_PATH = /usr/local/include/opencv4
-CV_LIBS_PATH = ./cvDecode
-CFLAGS = -std=gnu99 -I$(VLC_SRC_PATH)/include/ -g -Wall# -fPIC# -target x86_64-apple-darwin20.3.0
-CXXFLAGS = -std=c++11 -I$(CV_SRC_PATH)# -fPIC# -target x86_64-apple-darwin20.3.0
-LDFLAGS = -L$(VLC_LIBS_PATH) -L$(CV_LIBS_PATH)
-LDLIBS = -lvlc -lvlccore -lCvDecode
+CFLAGS = -std=gnu99 -I$(VLC_SRC_PATH) -g -Wall -fPIC -D__PLUGIN__ -D_FILE_OFFSET_BITS=64 -D_REENTRANT -D_THREAD_SAFE
+CXXFLAGS = -std=c++11 -I$(CV_SRC_PATH) -fPIC
+LDFLAGS = -L$(VLC_LIBS_PATH)
+LDLIBS = -lvlccore
 
 # Rules
 
-libvlc_upscaler_decoder.dylib: vlc_upscaler_decoder.o libCvDecode.a
-	$(CXX) vlc_upscaler_decoder.o $(LDFLAGS) $(LDLIBS) -dynamiclib -o libvlc_upscaler_decoder.dylib
+libvlc_upscaler_decoder_plugin.dylib: vlc_upscaler_decoder.o cvDecode/libCvDecode.a
+	$(CXX) $^ $(LDFLAGS) $(LDLIBS) -dynamiclib -o $@
 
 vlc_upscaler_decoder.o: vlc_upscaler_decoder.c
-	$(CC) $(CFLAGS) vlc_upscaler_decoder.c -c -o vlc_upscaler_decoder.o
+	$(CC) $(CFLAGS) -c $^ -o $@
 
-libCvDecode.a: cvDecodeClass.o cvDecodeWrapper.o
-	ar rcs cvDecode/libCvDecode.a cvDecode/cvDecodeClass.o cvDecode/cvDecodeWrapper.o
+cvDecode/libCvDecode.a: cvDecode/cvDecodeClass.o cvDecode/cvDecodeWrapper.o
+	ar rcs $@ $^
 
-cvDecodeClass.o: cvDecode/cvDecodeClass.cpp
-	$(CXX) $(CXXFLAGS) -c cvDecode/cvDecodeClass.cpp -o cvDecode/cvDecodeClass.o
+cvDecode/cvDecodeClass.o: cvDecode/cvDecodeClass.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-cvDecodeWrapper.o: cvDecode/cvDecodeWrapper.cpp 
-	$(CXX) $(CXXFLAGS) -c cvDecode/cvDecodeWrapper.cpp -o cvDecode/cvDecodeWrapper.o
+cvDecode/cvDecodeWrapper.o: cvDecode/cvDecodeWrapper.cpp 
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 .PHONY: clean
 clean:
 	rm -f *.o *.dylib cvDecode/*.o cvDecode/*.a
 
 .PHONY: all
-all: clean libvlc_upscaler_decoder.dylib
+all: clean libvlc_upscaler_decoder_plugin.dylib

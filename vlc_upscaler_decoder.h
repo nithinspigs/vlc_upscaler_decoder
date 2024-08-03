@@ -13,11 +13,13 @@
 
 // Prototypes
 static int Open(vlc_object_t *);
-static int Close(vlc_object_t *);
+static void Close(vlc_object_t *);
 static int Decode(decoder_t *, block_t *);
 
-typedef struct {
+
+typedef struct decoder_sys_t {
 
 	struct CvDecode *v;
 
 } decoder_sys_t;
+

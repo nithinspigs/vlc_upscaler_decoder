@@ -12,13 +12,14 @@
 static int Open(vlc_object_t *);
 static void Close(vlc_object_t *);
 
-#define MODULE_STRING "VLC Upscaler Decoder"
+#define MODULE_STRING "vlc_upscaler_decoder"
 
 vlc_module_begin()
 	set_shortname("VLC Upscaler Decoder")
 	set_description("VLC plugin that decodes video and upscales it in real time")
 	set_capability("decoder", 0)
 	set_callbacks(Open, Close)
+	add_bool("test boolean setting", false, "test boolean short", "test boolean long text", true)
 vlc_module_end()
 
 static int Open(vlc_object_t *p_this) {
