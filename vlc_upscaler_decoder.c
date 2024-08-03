@@ -17,12 +17,14 @@ static void Close(vlc_object_t *);
 vlc_module_begin()
 	set_shortname("VLC Upscaler Decoder")
 	set_description("VLC plugin that decodes video and upscales it in real time")
-	set_capability("decoder", 0)
+	set_capability("video decoder", 900)
 	set_callbacks(Open, Close)
 	add_bool("test boolean setting", false, "test boolean short", "test boolean long text", true)
 vlc_module_end()
 
 static int Open(vlc_object_t *p_this) {
+
+	fprintf(stderr, "%s", "Open function\n");
 
 	// Do I need p_dec -> p_sys?
 	decoder_t *p_dec = (decoder_t *) p_this;
@@ -45,7 +47,7 @@ static int Open(vlc_object_t *p_this) {
 
 static int Decode(decoder_t *p_dec, block_t *p_block) {
 
-	printf("%s", "Verify that decoder plugin is running");
+	fprintf(stderr, "%s", "Decode function\n");
 
 	// No data to decode
 	if(!p_block) {
@@ -87,13 +89,15 @@ static int Decode(decoder_t *p_dec, block_t *p_block) {
 
 	decoder_QueueVideo(p_dec, p_pic);
 	// block_Release can't be identified by linked idk why
-	// block_Release(p_block);
+	block_Release(p_block);
 
 	return VLCDEC_SUCCESS;
 
 }
 
 static void Close(vlc_object_t *p_this) {
+
+	fprintf(stderr, "%s", "Close function\n");
 
 	decoder_t *p_dec = (decoder_t *) p_this;
 	decoder_sys_t *p_sys = p_dec -> p_sys;

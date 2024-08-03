@@ -12,6 +12,7 @@ void CvDecode::cvDecode(unsigned char *p_buffer, int i_buffer) {
 	 * HOW will decoded data be converted into p_pic for VLC?
 	 */
 
-	std::cout << p_buffer[0] << ", "  << i_buffer << std::endl;
+	// std::cout << p_buffer[0] << ", "  << i_buffer << std::endl;
+	std::cerr << "cvDecode function" << std::endl;
 
 }
