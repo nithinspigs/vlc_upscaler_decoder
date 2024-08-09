@@ -3,12 +3,13 @@ MAKE = make
 CC = gcc
 CXX = g++
 VLC_SRC_PATH = ./include/vlc/plugins/
-VLC_LIBS_PATH = /Applications/VLC.app/Contents/MacOS/lib
-CV_SRC_PATH = /usr/local/include/opencv4
+VLC_LIBS_PATH = /Applications/VLC.app/Contents/MacOS/lib/
+CV_SRC_PATH = /opt/homebrew/include/opencv4
+CV_LIBS_PATH = /opt/homebrew/Cellar/opencv/4.10.0_2/lib
 CFLAGS = -std=gnu99 -I$(VLC_SRC_PATH) -g -Wall -fPIC -D__PLUGIN__ -D_FILE_OFFSET_BITS=64 -D_REENTRANT -D_THREAD_SAFE
-CXXFLAGS = -std=c++11 -I$(CV_SRC_PATH) -fPIC
-LDFLAGS = -L$(VLC_LIBS_PATH)
-LDLIBS = -lvlccore
+CXXFLAGS = -std=c++11 -I$(CV_SRC_PATH) -g -Wall -fPIC
+LDFLAGS = -L$(VLC_LIBS_PATH) -L$(CV_LIBS_PATH)
+LDLIBS = -lvlccore -lopencv_core -lopencv_imgcodecs
 
 # Rules
 

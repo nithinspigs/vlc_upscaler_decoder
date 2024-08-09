@@ -1,5 +1,6 @@
 #include "cvDecodeClass.hpp"
 #include "opencv2/opencv.hpp"
+// #include "opencv2/imgcodecs.hpp"
 #include <iostream>
 
 void CvDecode::cvDecode(unsigned char *p_buffer, int i_buffer) {
@@ -12,7 +13,11 @@ void CvDecode::cvDecode(unsigned char *p_buffer, int i_buffer) {
 	 * HOW will decoded data be converted into p_pic for VLC?
 	 */
 
-	// std::cout << p_buffer[0] << ", "  << i_buffer << std::endl;
-	std::cerr << "cvDecode function" << std::endl;
+	std::vector<unsigned char> vector_buffer(p_buffer, p_buffer + i_buffer);
+	std::cerr << "i_buffer: " << i_buffer << '\n';
+	std::cerr << "vector.size(): " << vector_buffer.size() << std::endl;
+	cv::Mat thisImage = cv::imdecode(vector_buffer);
+	std::cerr << thisImage << std::endl;
+	// cv::imwrite("thisImage.png", thisImage);
 
 }

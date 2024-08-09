@@ -48,15 +48,35 @@ static int Open(vlc_object_t *p_this) {
 static int Decode(decoder_t *p_dec, block_t *p_block) {
 
 	fprintf(stderr, "%s", "Decode function\n");
+	fprintf(stderr, "%s%u\n", "p_dec -> fmt_in.i_codec: ", p_dec -> fmt_in.i_codec);
+	fprintf(stderr, "%s%s\n", "fourcc description: ", vlc_fourcc_GetDescription(VIDEO_ES, p_dec -> fmt_in.i_codec));
 
+	/*
 	// No data to decode
 	if(!p_block) {
 		return VLCDEC_SUCCESS;
 	}
+	*/
+
+	/* Set output properties */
+	p_dec -> fmt_out.video.i_chroma =
+	p_dec -> fmt_out.i_codec = VLC_CODEC_RGB24;
+	p_dec -> fmt_out.video.i_sar_num = 1;
+	p_dec -> fmt_out.video.i_sar_den = 1;
+	p_dec -> fmt_out.video.i_visible_width = p_dec -> fmt_out.video.i_width = p_dec -> fmt_in.video.i_width;
+	p_dec -> fmt_out.video.i_visible_height = p_dec -> fmt_out.video.i_height = p_dec -> fmt_in.video.i_height;
 
 	// Just decode, no processing
-	// picture_t p_pic;
-	picture_t *p_pic; // = decoder_NewPicture(p_dec);
+	decoder_UpdateVideoFormat(p_dec);
+	picture_t *p_pic = decoder_NewPicture(p_dec);
+	fprintf(stderr, "%s%u\n", "p_pic -> format.i_chroma: ", p_pic -> format.i_chroma);
+	fprintf(stderr, "%s%s\n", "fourcc description: ", vlc_fourcc_GetDescription(VIDEO_ES, p_pic -> format.i_chroma));
+	/*
+	pèpic -> format.ièchroma: 875714130
+	fourcc description: 24 bits RGB
+	*/
+
+
 	// Find a way to not pass VLC structs to opencv, cuz g++ cannot compile VLC header files properly
 	decoder_sys_t *p_sys = (decoder_sys_t *) p_dec -> p_sys;
 	CvDecode_decode(p_sys -> v, p_block -> p_buffer, p_block -> i_buffer);
