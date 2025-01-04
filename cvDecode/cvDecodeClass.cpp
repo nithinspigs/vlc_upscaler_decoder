@@ -13,10 +13,11 @@ void CvDecode::cvDecode(unsigned char *p_buffer, int i_buffer) {
 	 * HOW will decoded data be converted into p_pic for VLC?
 	 */
 
+	// Since vector/buffer size is not constant, maybe buffer does not just contain data for one image?
 	std::vector<unsigned char> vector_buffer(p_buffer, p_buffer + i_buffer);
 	std::cerr << "i_buffer: " << i_buffer << '\n';
 	std::cerr << "vector.size(): " << vector_buffer.size() << std::endl;
-	cv::Mat thisImage = cv::imdecode(vector_buffer);
+	cv::Mat thisImage = cv::imdecode(vector_buffer, cv::IMREAD_UNCHANGED);
 	std::cerr << thisImage << std::endl;
 	// cv::imwrite("thisImage.png", thisImage);
 
