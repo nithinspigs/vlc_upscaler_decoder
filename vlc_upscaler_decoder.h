@@ -7,7 +7,7 @@
 #include <vlc_common.h>
 #include <vlc_plugin.h>
 #include <vlc_codec.h>
-//#include <vlc_avcodec.h>
+#include <vlc_avcodec.h>
 #include <vlc_cpu.h>
 // #include <vlc_ancillary.h>
 #include <assert.h>
@@ -18,8 +18,8 @@
 #include <libavutil/pixdesc.h>
 #include <libavutil/mastering_display_metadata.h>
 
-// Items to include for VLC avcodec plugin functionality
-//#include "modules/codec/avcodec/avcodec.h"
+// Items to include for FFMPEG helper functions
+#include "fourcc.h"
 
 // Items to include for OpenCV functionality
 #include "./cvDecode/cvDecodeWrapper.h"

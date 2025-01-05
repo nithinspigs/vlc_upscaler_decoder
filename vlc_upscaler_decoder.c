@@ -33,8 +33,26 @@ static int Open(vlc_object_t *p_this) {
 		return VLC_ENOMEM;
 	}
 
-	p_dec -> p_sys = (void *) p_sys;
+	fprintf(stderr, "%s%u\n", "p_dec -> fmt_in.i_codec: ", p_dec -> fmt_in.i_codec);
+	fprintf(stderr, "%s%s\n", "fourcc description: ", vlc_fourcc_GetDescription(VIDEO_ES, p_dec -> fmt_in.i_codec));
+
+	// Get ffmpeg codec and initialize decoding context
+	const AVCodec *p_codec;
+	enum AVCodecID i_ffmpeg_codec;
+	if (!getFfmpegCodec(p_dec -> fmt_in.i_codec, &i_ffmpeg_codec))
+		return VLC_EGENERIC;
+	fprintf(stderr, "avcodec_get_name(i_ffmpeg_codec): %s\n", avcodec_get_name(i_ffmpeg_codec));
+	p_codec = avcodec_find_decoder(i_ffmpeg_codec);
+	fprintf(stderr, "p_codec -> long_name: %s\n", p_codec -> long_name);
+	AVCodecContext *p_context = avcodec_alloc_context3(p_codec);
+	if(p_context == NULL) {
+		return VLC_EGENERIC;
+	}
+
+	p_dec -> p_sys = p_sys;
 	p_sys -> v = newCvDecode();
+	p_sys -> p_context = p_context;
+	p_sys -> p_codec = p_codec;
 	p_dec -> pf_decode = Decode;
 	p_dec -> pf_flush = NULL; // not needed?
 	
@@ -48,18 +66,69 @@ static int Open(vlc_object_t *p_this) {
 static int Decode(decoder_t *p_dec, block_t *p_block) {
 
 	fprintf(stderr, "%s", "Decode function\n");
+	fprintf(stderr, "%s%u\n", "p_dec -> fmt_in.i_codec: ", p_dec -> fmt_in.i_codec);
+	fprintf(stderr, "%s%s\n", "fourcc description: ", vlc_fourcc_GetDescription(VIDEO_ES, p_dec -> fmt_in.i_codec));
 
+	/*
 	// No data to decode
 	if(!p_block) {
 		return VLCDEC_SUCCESS;
 	}
+	*/
+
+	/* Set output properties */
+	p_dec -> fmt_out.video.i_chroma =
+	p_dec -> fmt_out.i_codec = VLC_CODEC_RGB24;
+	p_dec -> fmt_out.video.i_sar_num = 1;
+	p_dec -> fmt_out.video.i_sar_den = 1;
+	p_dec -> fmt_out.video.i_visible_width = p_dec -> fmt_out.video.i_width = p_dec -> fmt_in.video.i_width;
+	p_dec -> fmt_out.video.i_visible_height = p_dec -> fmt_out.video.i_height = p_dec -> fmt_in.video.i_height;
 
 	// Just decode, no processing
-	// picture_t p_pic;
+	if (decoder_UpdateVideoFormat(p_dec) < 0) {
+		fprintf(stderr, "%s\n", "decoder video format not updated");
+		goto error;
+	}
 	picture_t *p_pic = decoder_NewPicture(p_dec);
-	// Find a way to not pass VLC structs to opencv, cuz g++ cannot compile VLC header files properly
-	decoder_sys_t *p_sys = (decoder_sys_t *) p_dec -> p_sys;
-	CvDecode_decode(p_sys -> v, p_block -> p_buffer, p_block -> i_buffer);
+	fprintf(stderr, "%s%u\n", "p_pic -> format.i_chroma: ", p_pic -> format.i_chroma);
+	fprintf(stderr, "%s%s\n", "fourcc description: ", vlc_fourcc_GetDescription(VIDEO_ES, p_pic -> format.i_chroma));
+	/*
+	p_pic -> format.i_chroma: 875714130
+	fourcc description: 24 bits RGB
+	*/
+
+	decoder_sys_t *p_sys = p_dec -> p_sys;
+	
+	// Decode block using ffmpeg
+	fprintf(stderr, "%s%s\n", "p_dec -> p_sys -> p_codec.long_name: ", p_sys -> p_codec -> long_name);	
+	AVFrame *frame = av_frame_alloc();
+	fprintf(stderr, "%s\n", "allocated frame");
+	AVPacket *packet = av_packet_alloc();
+	fprintf(stderr, "%s\n", "allocated packet");
+
+	// Prepare the packet with the data from p_buffer
+	packet -> data = p_block -> p_buffer;
+	packet -> size = p_block -> i_buffer;
+	fprintf(stderr, "%s\n", "edited packet data and size");
+
+	// Send packet to decoder
+	fprintf(stderr, "%s\n", "sending packet to decoder");
+	if (avcodec_send_packet(p_sys -> p_context, packet) < 0) {
+		goto error;
+		fprintf(stderr, "%s\n", "packet ret < 0");
+	}
+
+	// Receive frame from decoder
+	fprintf(stderr, "%s\n", "receiving frame from decoder");
+	if (avcodec_receive_frame(p_sys -> p_context, frame) < 0) {
+		goto error;
+		fprintf(stderr, "%s\n", "frame ret < 0");
+	}
+
+	fprintf(stderr, "%s\n", av_get_pix_fmt_name(frame -> format));
+
+	// I only need opencv for upscaling, not decoding
+	// CvDecode_decode(p_sys -> v, p_block -> p_buffer, p_block -> i_buffer);
 
 	/*
 	
@@ -88,10 +157,17 @@ static int Decode(decoder_t *p_dec, block_t *p_block) {
 	*/
 
 	decoder_QueueVideo(p_dec, p_pic);
-	// block_Release can't be identified by linked idk why
+	av_frame_free(&frame);
+	av_packet_free(&packet);
 	block_Release(p_block);
-
 	return VLCDEC_SUCCESS;
+
+error:
+	printf("%s", "Reached error");
+	av_frame_free(&frame);
+	av_packet_free(&packet);
+	block_Release(p_block);
+	return VLC_EGENERIC;
 
 }
 
@@ -101,6 +177,8 @@ static void Close(vlc_object_t *p_this) {
 
 	decoder_t *p_dec = (decoder_t *) p_this;
 	decoder_sys_t *p_sys = p_dec -> p_sys;
+	AVCodecContext *p_context = p_sys -> p_context;
+	avcodec_free_context(&p_context);
 	deleteCvDecode(p_sys -> v);
 	free(p_dec -> p_sys);
 
