@@ -20,13 +20,13 @@ LDLIBS = -lvlccore -lavcodec -lopencv_core -lopencv_imgcodecs
 
 # Rules
 
-libvlc_upscaler_decoder_plugin.dylib: vlc_upscaler_decoder.o fourcc.o cvDecode/libCvDecode.a
+libvlc_upscaler_decoder_plugin.dylib: vlc_upscaler_decoder.o avcodec_helpers.o cvDecode/libCvDecode.a
 	$(CXX) $^ $(LDFLAGS) $(LDLIBS) -dynamiclib -o $@
 
 vlc_upscaler_decoder.o: vlc_upscaler_decoder.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
-fourcc.o:
+avcodec_helpers.o:
 
 cvDecode/libCvDecode.a: cvDecode/cvDecodeClass.o cvDecode/cvDecodeWrapper.o
 	ar rcs $@ $^

@@ -19,7 +19,7 @@
 #include <libavutil/mastering_display_metadata.h>
 
 // Items to include for FFMPEG helper functions
-#include "fourcc.h"
+#include "avcodec_helpers.h"
 
 // Items to include for OpenCV functionality
 #include "./cvDecode/cvDecodeWrapper.h"
@@ -35,6 +35,8 @@ typedef struct decoder_sys_t {
 	struct CvDecode *v;
 	AVCodecContext *p_context;
 	const AVCodec *p_codec;
+	vlc_mutex_t lock;
+	date_t pts;
 
 } decoder_sys_t;
 
